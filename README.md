@@ -1,2 +1,2 @@
-# photobooth_kamia
+# Photobooth using HTML
 Photobooth for Kamia
