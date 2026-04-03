@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gryffindor Portrait Booth 🦁</title>
+  <style>
+    :root{
+      --gryffindor-red: #7f0000;
+      --gryffindor-red-2: #a40000;
+      --gryffindor-gold: #d4af37;
+      --gryffindor-gold-2: #f5d76e;
+      --parchment: #fff7e6;
+      --ink: #2c1a10;
+      --muted: #6f5b4f;
+      --panel: rgba(255, 250, 240, 0.92);
+      --border: rgba(127, 0, 0, 0.16);
+      --shadow: 0 18px 40px rgba(0,0,0,0.18);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background:
+        radial-gradient(circle at top, rgba(245,215,110,0.16), transparent 28%),
+        radial-gradient(circle at 12% 18%, rgba(127,0,0,0.12), transparent 24%),
+        linear-gradient(180deg, #2a0a0a 0%, #651313 24%, #8b1a1a 56%, #f4e6c3 100%);
+    }
+
+    nav {
+      width: 100%;
+      padding: 12px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(90deg, #220808, #6a1010 48%, #220808);
+      color: #fff8e3;
+      border-bottom: 4px solid var(--gryffindor-gold);
+      box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .nav-left {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: var(--gryffindor-gold-2);
+      font-variant: small-caps;
+    }
+
+    .nav-right {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 0.95rem;
+      font-style: italic;
+      color: #fff5d1;
+      opacity: 0.96;
+      letter-spacing: 0.4px;
+    }
+
+    .page-content {
+      width: 100%;
+      max-width: 1260px;
+      padding: 18px 18px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 14px;
+      padding: 6px 14px 2px;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: clamp(2.1rem, 3.7vw, 2.8rem);
+      color: var(--gryffindor-gold-2);
+      text-shadow: 0 2px 0 #451010, 0 0 16px rgba(245,215,110,0.18);
+      line-height: 1.05;
+    }
+
+    .description {
+      margin: 4px auto 0;
+      max-width: 760px;
+      font-size: 0.95rem;
+      line-height: 1.45;
+      color: rgba(255, 245, 209, 0.96);
+      font-style: italic;
+    }
+
+    .main-layout {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 38px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+
+    .left-panel,
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .camera-booth,
+    .action-card {
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+    }
+
+    .camera-booth {
+      padding: 16px;
+      background: linear-gradient(180deg, rgba(127,0,0,0.98), rgba(91,16,16,0.98));
+      border: 2px solid rgba(245,215,110,0.9);
+      max-width: 400px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .camera-booth::before {
+      content: "🦁";
+      position: absolute;
+      top: 12px;
+      left: 16px;
+      color: rgba(245,215,110,0.95);
+      font-size: 1rem;
+    }
+
+    .camera-booth::after {
+      content: "⚡";
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      color: rgba(245,215,110,0.95);
+      font-size: 1rem;
+    }
+
+    .filter-menu {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .filter-btn {
+      border: 1px solid rgba(245,215,110,0.58);
+      background: rgba(255,245,214,0.12);
+      color: #fff8e8;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .filter-btn:hover { transform: translateY(-1px); }
+
+    .filter-btn.active {
+      background: linear-gradient(180deg, var(--gryffindor-gold-2), var(--gryffindor-gold));
+      color: #3e1414;
+      border-color: #fff1b5;
+    }
+
+    video {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      border-radius: 18px;
+      border: 4px solid rgba(245,215,110,0.94);
+      background: #171717;
+      transform: scaleX(-1);
+      object-fit: cover;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.18);
+    }
+
+    .status-row {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    #countdown {
+      min-height: 66px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 58px;
+      font-weight: 800;
+      color: #fff6d7;
+      font-family: Georgia, serif;
+      text-shadow: 0 2px 0 rgba(0,0,0,0.22);
+      letter-spacing: 0.5px;
+      margin: 0;
+    }
+
+    .controls {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 20px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.12);
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(2px); box-shadow: none; }
+
+    #startBtn {
+      background: linear-gradient(180deg, var(--gryffindor-gold-2), var(--gryffindor-gold));
+      color: #3d1616;
+    }
+
+    #downloadBtn {
+      background: linear-gradient(180deg, #a73737, #781414);
+      color: #fff9ed;
+    }
+
+    #printBtn {
+      background: linear-gradient(180deg, #c79d12, #8a6a00);
+      color: #fff9ed;
+    }
+
+    #resetBtn {
+      background: linear-gradient(180deg, #7a7a7a, #555);
+      color: #fff;
+    }
+
+    #sendBtn {
+      background: linear-gradient(180deg, #c79d12, #8a6a00);
+      color: #fff9ed;
+      min-width: 170px;
+    }
+
+    .action-card {
+      padding: 16px 18px 18px;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(255,250,240,0.96), rgba(251,244,227,0.98));
+      border: 1px solid rgba(127,0,0,0.12);
+    }
+
+    .action-title {
+      margin: 0 0 6px;
+      font-family: Georgia, serif;
+      font-size: 1.05rem;
+      color: var(--gryffindor-red);
+    }
+
+    .helper-text {
+      margin: 0 0 12px;
+      font-size: 0.92rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .email-section {
+      margin-top: 4px;
+      display: none;
+      text-align: center;
+      background: rgba(255,255,255,0.75);
+      padding: 14px;
+      border-radius: 20px;
+      border: 1px dashed rgba(127,0,0,0.28);
+    }
+
+    #emailInput {
+      padding: 12px 15px;
+      border-radius: 999px;
+      border: 2px solid rgba(212,175,55,0.58);
+      width: min(100%, 270px);
+      margin-bottom: 8px;
+      outline: none;
+      text-align: center;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    #emailInput:focus {
+      border-color: var(--gryffindor-red-2);
+      box-shadow: 0 0 0 3px rgba(164,0,0,0.10);
+    }
+
+    #statusMsg {
+      font-size: 13px;
+      font-weight: 700;
+      color: #7a1212;
+      margin-top: 8px;
+      min-height: 20px;
+    }
+
+    .disclaimer {
+      font-size: 10px;
+      color: #74503f;
+      max-width: 310px;
+      line-height: 1.35;
+      margin-top: 10px;
+      opacity: 0.88;
+    }
+
+    canvas {
+      background: #fff;
+      border: 8px solid rgba(255,245,214,0.95);
+      border-radius: 8px;
+      max-height: 75vh;
+      width: auto;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.22);
+    }
+
+    .hotkey-note {
+      margin: 0;
+      font-size: 0.84rem;
+      color: var(--ink);
+      opacity: 0.95;
+      text-align: center;
+    }
+
+    #flash {
+      position: fixed;
+      inset: 0;
+      background: #fff9d6;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .flash-active { animation: flash-anim 0.2s ease-out; }
+
+    @keyframes flash-anim {
+      0% { opacity: 0; }
+      50% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    @media (max-width: 980px) {
+      .main-layout {
+        gap: 26px;
+      }
+
+      .camera-booth {
+        max-width: 400px;
+      }
+
+      canvas {
+        width: 230px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .page-content {
+        padding-top: 12px;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .description {
+        font-size: 0.88rem;
+      }
+
+      .main-layout {
+        gap: 22px;
+      }
+
+      canvas {
+        width: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="flash"></div>
+
+  <nav>
+    <div class="nav-left">Gryffindor House Booth</div>
+    <div class="nav-right">Forti Animo Estote</div>
+  </nav>
+
+  <div class="page-content">
+    <div class="hero">
+      <h1>House of Courage</h1>
+      <p class="description">
+        Take three photos, let the strip appear, and keep the magic and bravery within.
+      </p>
+    </div>
+
+    <div class="main-layout">
+      <div class="left-panel">
+        <div class="camera-booth">
+          <div class="filter-menu">
+            <button class="filter-btn active" onclick="setFilter('none', this)">House Light</button>
+            <button class="filter-btn" onclick="setFilter('grayscale(100%)', this)">Ash &amp; Ink</button>
+            <button class="filter-btn" onclick="setFilter('sepia(100%)', this)">Old Scroll</button>
+            <button class="filter-btn" onclick="setFilter('brightness(1.15) contrast(1.1)', this)">Torch Glow</button>
+            <button class="filter-btn" onclick="setFilter('hue-rotate(350deg) saturate(1.2)', this)">Scarlet Bloom</button>
+          </div>
+
+          <video id="video" autoplay playsinline muted></video>
+        </div>
+
+        <div id="countdown">READY?</div>
+
+        <div class="controls">
+          <div class="btn-group">
+            <button id="startBtn">Start Session</button>
+            <button id="downloadBtn" style="display:none;">Save to Laptop</button>
+            <button id="printBtn" style="display:none;">Print at Desk 🖨️</button>
+            <button id="resetBtn" style="display:none;">New Session</button>
+          </div>
+
+          <div id="emailSection" class="email-section">
+            <input type="email" id="emailInput" placeholder="Enter Gmail address" />
+            <br />
+            <button id="sendBtn">Send to Gmail</button>
+            <p id="statusMsg"></p>
+            <div class="disclaimer">
+              *Emails are used only for this delivery and are not stored. Images are deleted post-event.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-panel">
+        <canvas id="canvas" width="525" height="1575"></canvas>
+      </div>
+    </div>
+
+    <p class="hotkey-note">Tip: use your laptop’s Enter or Space key as a shutter shortcut.</p>
+  </div>
+
+  <script src="template.js"></script>
+  <script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const countdownEl = document.getElementById("countdown");
+    const startBtn = document.getElementById("startBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const printBtn = document.getElementById("printBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const emailSection = document.getElementById("emailSection");
+    const sendBtn = document.getElementById("sendBtn");
+    const statusMsg = document.getElementById("statusMsg");
+    const flash = document.getElementById("flash");
+
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzoAS_cjoJqre_cbILDkNhGG7gSYlJqG0AiluvvO5AwRDN1RrbGeTGfkLdsLNGDv54/exec";
+
+    // Your team will provide this asset.
+    // IMPORTANT: it must have transparent windows for the photos.
+    const templateImg = new Image();
+    const TEMPLATE = window.TEMPLATE_STRING || "";
+    if (TEMPLATE) templateImg.src = TEMPLATE;
+
+    const slots = [
+      { x: 52, y: 67,  w: 420, h: 390 },
+      { x: 52, y: 457, w: 420, h: 390 },
+      { x: 52, y: 847, w: 420, h: 390 }
+    ];
+
+    let capturedImages = [];
+    let currentFilter = "none";
+    let cameraStream = null;
+    let cameraReady = false;
+    let isSessionRunning = false;
+
+    async function initCamera() {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          countdownEl.textContent = "Camera not supported";
+          return;
+        }
+
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+
+        video.srcObject = cameraStream;
+        await video.play();
+        cameraReady = true;
+        statusMsg.textContent = "Camera ready.";
+      } catch (err) {
+        console.error(err);
+        countdownEl.textContent = "Camera blocked";
+        statusMsg.textContent = "Please allow camera access and reload.";
+      }
+    }
+
+    function stopCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+      cameraReady = false;
+    }
+
+    function setFilter(filterVal, btn) {
+      currentFilter = filterVal;
+      video.style.filter = filterVal;
+      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    }
+
+    function renderCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      capturedImages.forEach(item => {
+        ctx.drawImage(item.img, item.x, item.y);
+      });
+
+      if (templateImg.complete && templateImg.naturalWidth > 0) {
+        ctx.drawImage(templateImg, 0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    templateImg.onload = renderCanvas;
+
+    function startSession() {
+      if (!cameraReady || isSessionRunning) return;
+
+      isSessionRunning = true;
+      capturedImages = [];
+      startBtn.style.display = "none";
+      downloadBtn.style.display = "none";
+      printBtn.style.display = "none";
+      resetBtn.style.display = "none";
+      emailSection.style.display = "none";
+      statusMsg.textContent = "";
+      renderCanvas();
+
+      countdownEl.style.fontSize = "30px";
+      countdownEl.textContent = "Get Ready! 📸";
+
+      setTimeout(() => takePhotoSequence(0), 1800);
+    }
+
+    function takePhotoSequence(index) {
+      let timer = 3;
+      countdownEl.style.fontSize = "60px";
+
+      const timerId = setInterval(() => {
+        countdownEl.textContent = timer;
+
+        if (timer === 0) {
+          clearInterval(timerId);
+          triggerFlash();
+          snap(index);
+
+          if (index < 2) {
+            setTimeout(() => {
+              countdownEl.style.fontSize = "30px";
+              countdownEl.textContent = "Strike a pose! 📸";
+              setTimeout(() => takePhotoSequence(index + 1), 1200);
+            }, 800);
+          } else {
+            finish();
+          }
+        }
+
+        timer--;
+      }, 1000);
+    }
+
+    function triggerFlash() {
+      flash.classList.remove("flash-active");
+      void flash.offsetWidth;
+      flash.classList.add("flash-active");
+    }
+
+    function snap(index) {
+      const slot = slots[index];
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = slot.w;
+      tempCanvas.height = slot.h;
+
+      const tempCtx = tempCanvas.getContext("2d");
+      tempCtx.filter = currentFilter;
+
+      if (!video.videoWidth || !video.videoHeight) {
+        statusMsg.textContent = "Camera not ready yet.";
+        return;
+      }
+
+      const vW = video.videoWidth;
+      const vH = video.videoHeight;
+      const videoAspect = vW / vH;
+      const slotAspect = slot.w / slot.h;
+
+      let sX, sY, sW, sH;
+      if (videoAspect > slotAspect) {
+        sW = vH * slotAspect;
+        sH = vH;
+        sX = (vW - sW) / 2;
+        sY = 0;
+      } else {
+        sW = vW;
+        sH = vW / slotAspect;
+        sX = 0;
+        sY = (vH - sH) / 2;
+      }
+
+      tempCtx.translate(slot.w, 0);
+      tempCtx.scale(-1, 1);
+      tempCtx.drawImage(video, sX, sY, sW, sH, 0, 0, slot.w, slot.h);
+
+      capturedImages.push({ img: tempCanvas, x: slot.x, y: slot.y });
+      renderCanvas();
+    }
+
+    function finish() {
+      isSessionRunning = false;
+      countdownEl.style.fontSize = "50px";
+      countdownEl.textContent = "HOUSE PRIDE!";
+      downloadBtn.style.display = "inline-block";
+      printBtn.style.display = "inline-block";
+      resetBtn.style.display = "inline-block";
+      emailSection.style.display = "block";
+    }
+
+    async function sendMail(payload) {
+      try {
+        await fetch(SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          body: JSON.stringify(payload)
+        });
+        return true;
+      } catch (e) {
+        console.error(e);
+        return false;
+      }
+    }
+
+    downloadBtn.onclick = () => {
+      const now = new Date();
+      const dateStr = now.toISOString().split("T")[0];
+      let hours = now.getHours();
+      const ampm = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12 || 12;
+
+      const fileName = `Gryffindor_Strip_${dateStr}_${hours.toString().padStart(2, "0")}${ampm}.png`;
+      const link = document.createElement("a");
+      link.download = fileName;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    };
+
+    sendBtn.onclick = async () => {
+      const email = document.getElementById("emailInput").value.trim();
+      if (!email.includes("@")) {
+        statusMsg.textContent = "⚠️ Invalid email address.";
+        return;
+      }
+
+      sendBtn.disabled = true;
+      statusMsg.textContent = "💌 Sending your magic...";
+
+      const ok = await sendMail({
+        email,
+        image: canvas.toDataURL("image/jpeg", 0.9),
+        isPrint: false
+      });
+
+      statusMsg.textContent = ok
+        ? "✅ Sent! Check your inbox or spam."
+        : "⚠️ Send failed. Please try again.";
+
+      sendBtn.disabled = false;
+    };
+
+    printBtn.onclick = async () => {
+      printBtn.disabled = true;
+      statusMsg.textContent = "📨 Sending print request...";
+
+      const ok = await sendMail({
+        image: canvas.toDataURL("image/png"),
+        isPrint: true
+      });
+
+      statusMsg.textContent = ok
+        ? "✅ Sent! Collect your print at 4:30 PM."
+        : "⚠️ Print request failed. Please try again.";
+
+      printBtn.disabled = false;
+    };
+
+    startBtn.onclick = startSession;
+    resetBtn.onclick = () => {
+      isSessionRunning = false;
+      capturedImages = [];
+      countdownEl.style.fontSize = "60px";
+      countdownEl.textContent = "READY?";
+      startBtn.style.display = "inline-block";
+      downloadBtn.style.display = "none";
+      printBtn.style.display = "none";
+      resetBtn.style.display = "none";
+      emailSection.style.display = "none";
+      renderCanvas();
+    };
+
+    window.addEventListener("keydown", (e) => {
+      if ((e.code === "Space" || e.code === "Enter") && !isSessionRunning && startBtn.style.display !== "none") {
+        e.preventDefault();
+        startSession();
+      }
+    });
+
+    window.addEventListener("beforeunload", stopCamera);
+
+    renderCanvas();
+    initCamera();
+  </script>
+</body>
+</html>
