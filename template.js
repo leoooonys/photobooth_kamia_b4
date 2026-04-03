@@ -1,1 +1,1 @@
-window.TEMPLATE_STRING = "./assets/";
+window.TEMPLATE_STRING = "./assets/Photobooth_Template";
