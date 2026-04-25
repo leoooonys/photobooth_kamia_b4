@@ -59,7 +59,7 @@ Typical project files:
 
 * `Index.html` — frontend user interface and capture flow
 * `photobooth_strip_guides.json` — exact layout coordinates for each strip design
-* `photobooth_strip_guides.txt` — human-readable guide
+* `photobooth_strip_guides.txt` — user-friendly guide for making the spaces and sizes of each photo strip design
 
 ## Setup
 
