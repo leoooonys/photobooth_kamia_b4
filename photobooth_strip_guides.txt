@@ -1,0 +1,60 @@
+PhotoBooth Strip Guides
+
+Gap thickness used by the current code:
+  Vertical gap between rows: 21 px
+  Horizontal gap between columns (4x6 layouts): 24 px
+  Footer/design area height: 396 px
+  Footer starts at y = 1404 px
+
+strip3
+  Canvas: 600 x 1800 px
+  Grid: 1 cols x 3 rows
+  Margins: x=36 px, y=63 px
+  Gaps: x=0 px, y=21 px
+  Footer: height=396 px, y=1404 to 1800 px
+  Slots:
+    Slot 1: x=36, y=63.0, w=528, h=412.0
+    Slot 2: x=36, y=496.0, w=528, h=412.0
+    Slot 3: x=36, y=929.0, w=528, h=412.0
+
+strip4
+  Canvas: 600 x 1800 px
+  Grid: 1 cols x 4 rows
+  Margins: x=36 px, y=63 px
+  Gaps: x=0 px, y=21 px
+  Footer: height=396 px, y=1404 to 1800 px
+  Slots:
+    Slot 1: x=36, y=63.0, w=528, h=303.75
+    Slot 2: x=36, y=387.75, w=528, h=303.75
+    Slot 3: x=36, y=712.5, w=528, h=303.75
+    Slot 4: x=36, y=1037.25, w=528, h=303.75
+
+grid6
+  Canvas: 1200 x 1800 px
+  Grid: 2 cols x 3 rows
+  Margins: x=72 px, y=63 px
+  Gaps: x=24 px, y=21 px
+  Footer: height=396 px, y=1404 to 1800 px
+  Slots:
+    Slot 1: x=72.0, y=63.0, w=516.0, h=412.0
+    Slot 2: x=612.0, y=63.0, w=516.0, h=412.0
+    Slot 3: x=72.0, y=496.0, w=516.0, h=412.0
+    Slot 4: x=612.0, y=496.0, w=516.0, h=412.0
+    Slot 5: x=72.0, y=929.0, w=516.0, h=412.0
+    Slot 6: x=612.0, y=929.0, w=516.0, h=412.0
+
+grid8
+  Canvas: 1200 x 1800 px
+  Grid: 2 cols x 4 rows
+  Margins: x=72 px, y=63 px
+  Gaps: x=24 px, y=21 px
+  Footer: height=396 px, y=1404 to 1800 px
+  Slots:
+    Slot 1: x=72.0, y=63.0, w=516.0, h=303.75
+    Slot 2: x=612.0, y=63.0, w=516.0, h=303.75
+    Slot 3: x=72.0, y=387.75, w=516.0, h=303.75
+    Slot 4: x=612.0, y=387.75, w=516.0, h=303.75
+    Slot 5: x=72.0, y=712.5, w=516.0, h=303.75
+    Slot 6: x=612.0, y=712.5, w=516.0, h=303.75
+    Slot 7: x=72.0, y=1037.25, w=516.0, h=303.75
+    Slot 8: x=612.0, y=1037.25, w=516.0, h=303.75
