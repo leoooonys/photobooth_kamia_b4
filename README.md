@@ -1,6 +1,6 @@
 # Photobooth Studio
 
-Photobooth Studio is a browser-based photobooth application that uses the device camera, captures a guided photo sequence, builds a printable photo strip, and can optionally send the final strip through Google Apps Script.
+Photobooth Studio is a browser-based photobooth application that uses your device's camera, captures photo sequences, builds a printable photo strip, and can  send the final photo strip through your email.
 
 ## Features
 
