@@ -420,10 +420,12 @@
 
           <div class="action-row">
             <button class="btn primary" id="saveBtn">Save to Device</button>
+            <button class="btn ghost" id="saveRawBtn">Save Raw ZIP</button>
             <button class="btn ghost" id="printBtn">Print Strip Only</button>
             <button class="btn success" id="emailBtn">Send via Email</button>
           </div>
 
+          <div class="status" id="rawStatus"></div>
           <div class="status" id="emailStatus"></div>
         </div>
       </section>
@@ -466,9 +468,11 @@
       clearTemplateBtn: document.getElementById('clearTemplateBtn'),
       shots: document.getElementById('shots'),
       status: document.getElementById('status'),
+      rawStatus: document.getElementById('rawStatus'),
       emailStatus: document.getElementById('emailStatus'),
       emailInput: document.getElementById('emailInput'),
       saveBtn: document.getElementById('saveBtn'),
+      saveRawBtn: document.getElementById('saveRawBtn'),
       printBtn: document.getElementById('printBtn'),
       emailBtn: document.getElementById('emailBtn'),
       editorViewport: document.getElementById('editorViewport'),
@@ -495,6 +499,7 @@
     function isLandscapeLayout() { return currentLayout().kind === 'landscape'; }
     function isDuplicateMode() { return !!currentLayout().allowDuplicateByRow && els.duplicateByRowToggle.checked; }
     function setStatus(message) { els.status.textContent = message; }
+    function setRawStatus(message) { els.rawStatus.textContent = message; }
     function setEmailStatus(message) { els.emailStatus.textContent = message; }
     function uid() { return (crypto && crypto.randomUUID) ? crypto.randomUUID() : `id-${Date.now()}-${Math.random().toString(16).slice(2)}`; }
     function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
@@ -527,16 +532,12 @@
         const innerW = layout.width - outer * 2;
         const innerH = layout.height - outer * 2;
 
-        // 3 small photos across the top/bottom row depending on the variant.
         const smallW = (innerW - slotGap * 2) / 3;
         const smallH = Math.round(innerH * smallRowRatio);
 
-        // Keep the height of the big photo stable.
-        // The footer area is shortened in length so it is always smaller than the big photo.
         const availableBigH = Math.max(240, innerH - (borderY * 2) - smallH - rowGap);
         const bigH = Math.round(availableBigH);
 
-        // Footer area length is deliberately shorter than the big photo length.
         const preferredFooterW = Math.round(innerW * 0.36);
         const footerW = Math.max(
           minFooterW,
@@ -548,9 +549,6 @@
         const slots = [];
 
         if (layout.variant === 'bottom') {
-          // RIGHT layout:
-          // top row = 3 small photos
-          // bottom row = big photo + footer area
           const bottomY = topY + smallH + rowGap;
 
           for (let i = 0; i < 3; i++) {
@@ -602,9 +600,6 @@
           };
         }
 
-        // LEFT layout:
-        // top row = footer area + big photo
-        // bottom row = 3 small photos
         const bottomY = topY + bigH + rowGap;
 
         slots.push({
@@ -684,6 +679,10 @@
       return { mode: 'standard', slots, footerH, usableH, marginX, marginY, gapX, gapY, innerW, innerH, cellW, cellH };
     }
 
+    function getPhotoDataUrl(photo) {
+      return photo?.rawDataUrl || photo?.dataUrl || '';
+    }
+
     function updateShotsRail() {
       const count = captureCount();
       els.shots.innerHTML = '';
@@ -693,7 +692,7 @@
         const slot = state.photos[i];
         if (slot) {
           const img = document.createElement('img');
-          img.src = slot.dataUrl;
+          img.src = getPhotoDataUrl(slot);
           cell.appendChild(img);
         } else {
           cell.textContent = `Photo ${i + 1}`;
@@ -786,7 +785,7 @@
         el.style.height = `${slot.h * scaleY}px`;
 
         const img = document.createElement('img');
-        img.src = photo.dataUrl;
+        img.src = getPhotoDataUrl(photo);
         img.style.objectPosition = `${(photo.focalX ?? 0.5) * 100}% ${(photo.focalY ?? 0.5) * 100}%`;
         el.appendChild(img);
 
@@ -906,7 +905,7 @@
 
         const photo = state.photos[photoIndex];
         if (!photo) continue;
-        const img = await loadImage(photo.dataUrl);
+        const img = await loadImage(getPhotoDataUrl(photo));
         ctx.save();
         ctx.beginPath();
         ctx.rect(slot.x, slot.y, slot.w, slot.h);
@@ -1030,7 +1029,7 @@
     }
 
     function buildPhotoObject(dataUrl) {
-      return { id: uid(), dataUrl, focalX: 0.5, focalY: 0.5 };
+      return { id: uid(), dataUrl, rawDataUrl: dataUrl, focalX: 0.5, focalY: 0.5 };
     }
 
     function placePhotoAtIndex(index, dataUrl) {
@@ -1075,7 +1074,7 @@
       ctx.drawImage(els.video, 0, 0, size.width, size.height);
       ctx.restore();
 
-      const dataUrl = els.captureCanvas.toDataURL('image/jpeg', 0.98);
+      const dataUrl = els.captureCanvas.toDataURL('image/png');
       placePhotoAtIndex(targetIndex, dataUrl);
       renderAll();
     }
@@ -1142,6 +1141,7 @@
       renderAll();
       setStatus('New session started.');
       setEmailStatus('');
+      setRawStatus('');
     }
 
     function loadTemplate(file) {
@@ -1168,6 +1168,186 @@
       link.href = els.exportCanvas.toDataURL('image/png');
       link.click();
       setStatus('Saved to device.');
+    }
+
+    function dataUrlToUint8Array(dataUrl) {
+      const commaIndex = dataUrl.indexOf(',');
+      const meta = dataUrl.slice(0, commaIndex);
+      const base64 = dataUrl.slice(commaIndex + 1);
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      return bytes;
+    }
+
+    function makeCrc32Table() {
+      const table = new Uint32Array(256);
+      for (let n = 0; n < 256; n++) {
+        let c = n;
+        for (let k = 0; k < 8; k++) {
+          c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+        }
+        table[n] = c >>> 0;
+      }
+      return table;
+    }
+
+    const CRC32_TABLE = makeCrc32Table();
+
+    function crc32(bytes) {
+      let crc = 0xFFFFFFFF;
+      for (let i = 0; i < bytes.length; i++) {
+        crc = CRC32_TABLE[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+      }
+      return (crc ^ 0xFFFFFFFF) >>> 0;
+    }
+
+    function dosDateTime(date = new Date()) {
+      const year = Math.max(1980, date.getFullYear());
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const hours = date.getHours();
+      const minutes = date.getMinutes();
+      const seconds = Math.floor(date.getSeconds() / 2);
+      const dosTime = (hours << 11) | (minutes << 5) | seconds;
+      const dosDate = ((year - 1980) << 9) | (month << 5) | day;
+      return { dosTime, dosDate };
+    }
+
+    function u16(n) {
+      const b = new Uint8Array(2);
+      const v = new DataView(b.buffer);
+      v.setUint16(0, n, true);
+      return b;
+    }
+
+    function u32(n) {
+      const b = new Uint8Array(4);
+      const v = new DataView(b.buffer);
+      v.setUint32(0, n >>> 0, true);
+      return b;
+    }
+
+    function concatBytes(chunks) {
+      const total = chunks.reduce((sum, c) => sum + c.length, 0);
+      const out = new Uint8Array(total);
+      let offset = 0;
+      for (const chunk of chunks) {
+        out.set(chunk, offset);
+        offset += chunk.length;
+      }
+      return out;
+    }
+
+    async function createZipBlob(files) {
+      const te = new TextEncoder();
+      const localParts = [];
+      const centralParts = [];
+      let offset = 0;
+
+      for (const file of files) {
+        const nameBytes = te.encode(file.name);
+        const dataBytes = file.data instanceof Uint8Array ? file.data : new Uint8Array(file.data);
+        const { dosTime, dosDate } = dosDateTime(file.date || new Date());
+        const crc = crc32(dataBytes);
+
+        const localHeader = concatBytes([
+          u32(0x04034b50),
+          u16(20),
+          u16(0),
+          u16(0),
+          u16(dosTime),
+          u16(dosDate),
+          u32(crc),
+          u32(dataBytes.length),
+          u32(dataBytes.length),
+          u16(nameBytes.length),
+          u16(0),
+          nameBytes
+        ]);
+
+        localParts.push(localHeader, dataBytes);
+
+        const centralHeader = concatBytes([
+          u32(0x02014b50),
+          u16(20),
+          u16(20),
+          u16(0),
+          u16(0),
+          u16(dosTime),
+          u16(dosDate),
+          u32(crc),
+          u32(dataBytes.length),
+          u32(dataBytes.length),
+          u16(nameBytes.length),
+          u16(0),
+          u16(0),
+          u16(0),
+          u16(0),
+          u32(0),
+          u32(offset),
+          nameBytes
+        ]);
+
+        centralParts.push(centralHeader);
+        offset += localHeader.length + dataBytes.length;
+      }
+
+      const centralDir = concatBytes(centralParts);
+      const localData = concatBytes(localParts);
+
+      const endRecord = concatBytes([
+        u32(0x06054b50),
+        u16(0),
+        u16(0),
+        u16(files.length),
+        u16(files.length),
+        u32(centralDir.length),
+        u32(localData.length),
+        u16(0)
+      ]);
+
+      return new Blob([localData, centralDir, endRecord], { type: 'application/zip' });
+    }
+
+    async function saveRawImagesAsZip() {
+      if (!state.photos.length) {
+        setRawStatus('Capture photos first.');
+        return;
+      }
+
+      setRawStatus('Building ZIP file...');
+
+      try {
+        const layout = currentLayout();
+        const entries = [];
+
+        for (let i = 0; i < state.photos.length; i++) {
+          const photo = state.photos[i];
+          if (!photo) continue;
+
+          const dataUrl = getPhotoDataUrl(photo);
+          if (!dataUrl) continue;
+
+          entries.push({
+            name: `photobooth-${layout.label}-raw-${String(i + 1).padStart(2, '0')}.png`,
+            data: dataUrlToUint8Array(dataUrl),
+            date: new Date()
+          });
+        }
+
+        const zipBlob = await createZipBlob(entries);
+        const link = document.createElement('a');
+        link.download = `photobooth-${layout.label}-raw-${Date.now()}.zip`;
+        link.href = URL.createObjectURL(zipBlob);
+        link.click();
+
+        setTimeout(() => URL.revokeObjectURL(link.href), 30000);
+        setRawStatus('Raw ZIP download started.');
+      } catch (err) {
+        console.error(err);
+        setRawStatus('Could not create ZIP file.');
+      }
     }
 
     async function printStripOnly() {
@@ -1286,6 +1466,7 @@
       els.newSessionBtn.addEventListener('click', resetSession);
       els.clearTemplateBtn.addEventListener('click', clearTemplate);
       els.saveBtn.addEventListener('click', saveToDevice);
+      els.saveRawBtn.addEventListener('click', saveRawImagesAsZip);
       els.printBtn.addEventListener('click', printStripOnly);
       els.emailBtn.addEventListener('click', sendEmail);
       window.addEventListener('resize', () => renderAll());
