@@ -379,7 +379,7 @@
           <div class="toggles">
             <label class="toggle"><input id="mirrorToggle" type="checkbox" checked /> Mirror preview</label>
             <label class="toggle"><input id="autoPrintToggle" type="checkbox" /> Auto print after final capture</label>
-            <label class="toggle"><input id="duplicateByRowToggle" type="checkbox" /> Duplicate by row (4×6 only)</label>
+            <label class="toggle"><input id="duplicateByRowToggle" type="checkbox" /> Duplicate by row</label>
           </div>
 
           <div class="action-row">
@@ -443,8 +443,8 @@
       strip4: { width: 600, height: 1800, cols: 1, rows: 4, footerRatio: 0.22, label: '2x6-4', photoCount: 4 },
       grid6: { width: 1200, height: 1800, cols: 2, rows: 3, footerRatio: 0.22, label: '4x6-6', allowDuplicateByRow: true },
       grid8: { width: 1200, height: 1800, cols: 2, rows: 4, footerRatio: 0.22, label: '4x6-8', allowDuplicateByRow: true },
-      ds3: { width: 1200, height: 1800, cols: 2, rows: 3, footerRatio: 0.22, label: '2x3-DS-3', photoCount: 3, dsMode: true, dsDuplicateRows: true, marginX: 36, gapX: 72 },
-      ds4: { width: 1200, height: 1800, cols: 2, rows: 4, footerRatio: 0.22, label: '2x3-DS-4', photoCount: 4, dsMode: true, dsDuplicateRows: true, marginX: 36, gapX: 72 },
+      ds3: { width: 1200, height: 1800, cols: 2, rows: 3, footerRatio: 0.22, label: '2x3-DS-3', photoCount: 3, dsMode: true, dsDuplicateRows: true, marginX: 36, gapX: 72, allowDuplicateByRow: true },
+      ds4: { width: 1200, height: 1800, cols: 2, rows: 4, footerRatio: 0.22, label: '2x3-DS-4', photoCount: 4, dsMode: true, dsDuplicateRows: true, marginX: 36, gapX: 72, allowDuplicateByRow: true },
       landscapeRight: { width: 1800, height: 1200, kind: 'landscape', label: '4R Landscape - Right', photoCount: 4, variant: 'bottom', outerMargin: 28, slotGap: 22, rowGap: 18, designGap: 22, borderY: 16, smallRowRatio: 0.285, minFooterW: 220 },
       landscapeLeft: { width: 1800, height: 1200, kind: 'landscape', label: '4R Landscape - Left', photoCount: 4, variant: 'top', outerMargin: 28, slotGap: 22, rowGap: 18, designGap: 22, borderY: 16, smallRowRatio: 0.285, minFooterW: 220 }
     };
@@ -1444,7 +1444,7 @@
         if (state.photos.length > total) state.photos = state.photos.slice(0, total);
         state.captureTargetIndex = null;
         renderAll();
-        setStatus(isDuplicateMode() ? 'Duplicate-by-row mode enabled for 4×6 layouts.' : 'Duplicate-by-row mode disabled.');
+        setStatus(isDuplicateMode() ? 'Duplicate-by-row mode enabled for this layout.' : 'Duplicate-by-row mode disabled.');
       });
       els.templateInput.addEventListener('change', e => {
         const file = e.target.files && e.target.files[0];
