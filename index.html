@@ -84,13 +84,7 @@
       background: #000;
       border: 1px solid var(--border);
     }
-    video, .camera-fallback {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+    video, .camera-fallback { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     video { transform: scaleX(-1); }
     .camera-fallback {
       display: grid;
@@ -116,16 +110,8 @@
       text-shadow: 0 8px 24px rgba(0,0,0,0.5);
     }
     .countdown-overlay.show { display: grid; }
-    .countdown-number {
-      font-size: clamp(56px, 12vw, 120px);
-      line-height: 1;
-    }
-    .countdown-label {
-      margin-top: 8px;
-      font-size: clamp(14px, 2vw, 22px);
-      font-weight: 700;
-      opacity: 0.95;
-    }
+    .countdown-number { font-size: clamp(56px, 12vw, 120px); line-height: 1; }
+    .countdown-label { margin-top: 8px; font-size: clamp(14px, 2vw, 22px); font-weight: 700; opacity: 0.95; }
     .controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     .control {
       background: rgba(255,255,255,0.03);
@@ -180,7 +166,7 @@
     .shots { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
     .shot {
       aspect-ratio: 1 / 1;
-      border-radius: 0px;
+      border-radius: 0;
       background: #0d1018;
       border: 1px solid var(--border);
       overflow: hidden;
@@ -216,7 +202,7 @@
     #stripEditor {
       position: relative;
       background: white;
-      border-radius: 12px;
+      border-radius: 0;
       overflow: hidden;
       box-shadow: 0 20px 45px rgba(0,0,0,0.26);
     }
@@ -225,6 +211,7 @@
       border: 1px dashed rgba(0,0,0,0.18);
       background: rgba(255,255,255,0.52);
       pointer-events: none;
+      border-radius: 0;
     }
     .slot-frame .slot-index {
       position: absolute;
@@ -232,7 +219,7 @@
       left: 6px;
       width: 20px;
       height: 20px;
-      border-radius: 999px;
+      border-radius: 0;
       background: rgba(0,0,0,0.08);
       color: rgba(0,0,0,0.52);
       display: grid;
@@ -254,10 +241,27 @@
       letter-spacing: 0.02em;
       user-select: none;
       pointer-events: none;
+      border-radius: 0;
+    }
+    .side-guide {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      display: grid;
+      place-items: center;
+      border: 2px dashed rgba(0,0,0,0.18);
+      background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.06));
+      color: rgba(0,0,0,0.34);
+      font-size: 11px;
+      letter-spacing: 0.02em;
+      user-select: none;
+      pointer-events: none;
+      text-align: center;
+      padding: 10px;
     }
     .photo-item {
       position: absolute;
-      border-radius: 10px;
+      border-radius: 0;
       overflow: hidden;
       box-shadow: 0 12px 28px rgba(0,0,0,0.18);
       background: #f6f6f6;
@@ -277,7 +281,7 @@
       top: 6px;
       z-index: 2;
       border: none;
-      border-radius: 999px;
+      border-radius: 0;
       padding: 6px 9px;
       background: rgba(0,0,0,0.72);
       color: white;
@@ -343,6 +347,10 @@
                 <option value="strip4">2×6 — 4 photo</option>
                 <option value="grid6">4×6 — 6 photo</option>
                 <option value="grid8">4×6 — 8 photo</option>
+                <option value="ds3">2×3 (DS: 3 photos)</option>
+                <option value="ds4">2×3 (DS: 4 photos)</option>
+                <option value="landscapeRight">4R Landscape - Right</option>
+                <option value="landscapeLeft">4R Landscape - Left</option>
               </select>
             </div>
             <div class="control">
@@ -429,10 +437,14 @@
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzyAJW90s0peoAySFeG1I12bTEb8yOG98G-7psJ0alrxsJtrNsVjsFyMee98Mh9d4y4/exec';
 
     const LAYOUTS = {
-      strip3: { width: 600, height: 1800, cols: 1, rows: 3, footerRatio: 0.22, label: '2x6-3' },
-      strip4: { width: 600, height: 1800, cols: 1, rows: 4, footerRatio: 0.22, label: '2x6-4' },
-      grid6: { width: 1200, height: 1800, cols: 2, rows: 3, footerRatio: 0.22, label: '4x6-6' },
-      grid8: { width: 1200, height: 1800, cols: 2, rows: 4, footerRatio: 0.22, label: '4x6-8' }
+      strip3: { width: 600, height: 1800, cols: 1, rows: 3, footerRatio: 0.22, label: '2x6-3', photoCount: 3 },
+      strip4: { width: 600, height: 1800, cols: 1, rows: 4, footerRatio: 0.22, label: '2x6-4', photoCount: 4 },
+      grid6: { width: 1200, height: 1800, cols: 2, rows: 3, footerRatio: 0.22, label: '4x6-6', allowDuplicateByRow: true },
+      grid8: { width: 1200, height: 1800, cols: 2, rows: 4, footerRatio: 0.22, label: '4x6-8', allowDuplicateByRow: true },
+      ds3: { width: 1200, height: 1800, cols: 2, rows: 3, footerRatio: 0.22, label: '2x3-DS-3', photoCount: 3, dsMode: true, dsDuplicateRows: true, marginX: 36, gapX: 72 },
+      ds4: { width: 1200, height: 1800, cols: 2, rows: 4, footerRatio: 0.22, label: '2x3-DS-4', photoCount: 4, dsMode: true, dsDuplicateRows: true, marginX: 36, gapX: 72 },
+      landscapeRight: { width: 1800, height: 1200, kind: 'landscape', label: '4R Landscape - Right', photoCount: 4, variant: 'bottom', outerMargin: 28, slotGap: 22, rowGap: 18, designGap: 22, borderY: 16, smallRowRatio: 0.285, minFooterW: 220 },
+      landscapeLeft: { width: 1800, height: 1200, kind: 'landscape', label: '4R Landscape - Left', photoCount: 4, variant: 'top', outerMargin: 28, slotGap: 22, rowGap: 18, designGap: 22, borderY: 16, smallRowRatio: 0.285, minFooterW: 220 }
     };
 
     const els = {
@@ -480,7 +492,8 @@
     };
 
     function currentLayout() { return LAYOUTS[state.layoutKey]; }
-    function isDuplicateMode() { return els.duplicateByRowToggle.checked && currentLayout().width === 1200; }
+    function isLandscapeLayout() { return currentLayout().kind === 'landscape'; }
+    function isDuplicateMode() { return !!currentLayout().allowDuplicateByRow && els.duplicateByRowToggle.checked; }
     function setStatus(message) { els.status.textContent = message; }
     function setEmailStatus(message) { els.emailStatus.textContent = message; }
     function uid() { return (crypto && crypto.randomUUID) ? crypto.randomUUID() : `id-${Date.now()}-${Math.random().toString(16).slice(2)}`; }
@@ -488,7 +501,9 @@
 
     function captureCount() {
       const layout = currentLayout();
-      return isDuplicateMode() ? layout.rows : layout.rows * layout.cols;
+      if (typeof layout.photoCount === 'number') return layout.photoCount;
+      const regular = layout.rows * layout.cols;
+      return isDuplicateMode() ? layout.rows : regular;
     }
 
     function updateCountdownLabel() {
@@ -499,13 +514,154 @@
       return Math.round(layout.height * layout.footerRatio);
     }
 
-    function buildSlots(layout) {
+    function getLayoutGeometry(layout) {
+      if (layout.kind === 'landscape') {
+        const outer = layout.outerMargin ?? 28;
+        const slotGap = layout.slotGap ?? 22;
+        const rowGap = layout.rowGap ?? 18;
+        const designGap = layout.designGap ?? 22;
+        const borderY = layout.borderY ?? 16;
+        const smallRowRatio = layout.smallRowRatio ?? 0.285;
+        const minFooterW = layout.minFooterW ?? 220;
+
+        const innerW = layout.width - outer * 2;
+        const innerH = layout.height - outer * 2;
+
+        // 3 small photos across the top/bottom row depending on the variant.
+        const smallW = (innerW - slotGap * 2) / 3;
+        const smallH = Math.round(innerH * smallRowRatio);
+
+        // Keep the height of the big photo stable.
+        // The footer area is shortened in length so it is always smaller than the big photo.
+        const availableBigH = Math.max(240, innerH - (borderY * 2) - smallH - rowGap);
+        const bigH = Math.round(availableBigH);
+
+        // Footer area length is deliberately shorter than the big photo length.
+        const preferredFooterW = Math.round(innerW * 0.36);
+        const footerW = Math.max(
+          minFooterW,
+          Math.min(preferredFooterW, Math.floor((innerW - designGap) * 0.42))
+        );
+        const bigW = Math.max(240, innerW - footerW - designGap);
+
+        const topY = outer + borderY;
+        const slots = [];
+
+        if (layout.variant === 'bottom') {
+          // RIGHT layout:
+          // top row = 3 small photos
+          // bottom row = big photo + footer area
+          const bottomY = topY + smallH + rowGap;
+
+          for (let i = 0; i < 3; i++) {
+            slots.push({
+              index: i,
+              row: 0,
+              col: i,
+              x: outer + i * (smallW + slotGap),
+              y: topY,
+              w: smallW,
+              h: smallH,
+              kind: 'small'
+            });
+          }
+
+          slots.push({
+            index: 3,
+            row: 1,
+            col: 0,
+            x: outer,
+            y: bottomY,
+            w: bigW,
+            h: bigH,
+            kind: 'big'
+          });
+
+          return {
+            mode: 'landscape',
+            slots,
+            footerH: 0,
+            designArea: {
+              x: outer + bigW + designGap,
+              y: bottomY,
+              w: footerW,
+              h: bigH
+            },
+            outer,
+            innerW,
+            innerH,
+            smallW,
+            smallH,
+            bigW,
+            bigH,
+            designW: footerW,
+            designGap,
+            slotGap,
+            rowGap,
+            borderY
+          };
+        }
+
+        // LEFT layout:
+        // top row = footer area + big photo
+        // bottom row = 3 small photos
+        const bottomY = topY + bigH + rowGap;
+
+        slots.push({
+          index: 3,
+          row: 0,
+          col: 1,
+          x: outer + footerW + designGap,
+          y: topY,
+          w: bigW,
+          h: bigH,
+          kind: 'big'
+        });
+
+        for (let i = 0; i < 3; i++) {
+          slots.push({
+            index: i,
+            row: 1,
+            col: i,
+            x: outer + i * (smallW + slotGap),
+            y: bottomY,
+            w: smallW,
+            h: smallH,
+            kind: 'small'
+          });
+        }
+
+        return {
+          mode: 'landscape',
+          slots,
+          footerH: 0,
+          designArea: {
+            x: outer,
+            y: topY,
+            w: footerW,
+            h: bigH
+          },
+          outer,
+          innerW,
+          innerH,
+          smallW,
+          smallH,
+          bigW,
+          bigH,
+          designW: footerW,
+          designGap,
+          slotGap,
+          rowGap,
+          borderY
+        };
+      }
+
       const footerH = footerHeight(layout);
       const usableH = layout.height - footerH;
-      const marginX = Math.round(layout.width * 0.06);
-      const marginY = Math.round(layout.height * 0.050);
-      const gapX = layout.cols > 1 ? Math.round(layout.width * 0.02) : 0;
-      const gapY = Math.round(usableH * 0.015);
+      const marginX = layout.marginX ?? Math.round(layout.width * 0.06);
+      const marginY = layout.marginY ?? Math.round(layout.height * 0.035);
+      const gapX = layout.gapX ?? (layout.cols > 1 ? Math.round(layout.width * 0.02) : 0);
+      const gapY = layout.gapY ?? Math.round(usableH * 0.015);
       const innerW = layout.width - marginX * 2;
       const innerH = usableH - marginY * 2;
       const cellW = layout.cols === 1 ? innerW : (innerW - gapX) / layout.cols;
@@ -514,16 +670,18 @@
       for (let row = 0; row < layout.rows; row++) {
         for (let col = 0; col < layout.cols; col++) {
           slots.push({
+            index: row * layout.cols + col,
             row,
             col,
             x: marginX + col * (cellW + gapX),
             y: marginY + row * (cellH + gapY),
             w: cellW,
-            h: cellH
+            h: cellH,
+            kind: 'slot'
           });
         }
       }
-      return { slots, footerH, usableH, marginX, marginY, gapX, gapY, innerW, innerH, cellW, cellH };
+      return { mode: 'standard', slots, footerH, usableH, marginX, marginY, gapX, gapY, innerW, innerH, cellW, cellH };
     }
 
     function updateShotsRail() {
@@ -560,13 +718,30 @@
       els.stripEditor.style.height = `${Math.floor(targetH)}px`;
     }
 
+    function syncDuplicateToggleAvailability() {
+      const allow = !!currentLayout().allowDuplicateByRow;
+      els.duplicateByRowToggle.disabled = !allow;
+      if (!allow) els.duplicateByRowToggle.checked = false;
+    }
+
     function renderEditor() {
       updateEditorSize();
       const layout = currentLayout();
-      const geom = buildSlots(layout);
+      const geom = getLayoutGeometry(layout);
       const scaleX = els.stripEditor.clientWidth / layout.width;
       const scaleY = els.stripEditor.clientHeight / layout.height;
       els.stripEditor.innerHTML = '';
+
+      if (geom.mode === 'landscape') {
+        const guide = document.createElement('div');
+        guide.className = 'side-guide';
+        guide.style.left = `${geom.designArea.x * scaleX}px`;
+        guide.style.top = `${geom.designArea.y * scaleY}px`;
+        guide.style.width = `${geom.designArea.w * scaleX}px`;
+        guide.style.height = `${geom.designArea.h * scaleY}px`;
+        guide.textContent = 'Design / footer area';
+        els.stripEditor.appendChild(guide);
+      }
 
       for (const slot of geom.slots) {
         const frame = document.createElement('div');
@@ -577,78 +752,57 @@
         frame.style.height = `${slot.h * scaleY}px`;
         const idx = document.createElement('div');
         idx.className = 'slot-index';
-        idx.textContent = String(slot.row * layout.cols + slot.col + 1);
+        idx.textContent = String(slot.index + 1);
         frame.appendChild(idx);
         els.stripEditor.appendChild(frame);
       }
 
-      const footer = document.createElement('div');
-      footer.className = 'footer-guide';
-      footer.style.height = `${geom.footerH * scaleY}px`;
-      footer.textContent = 'Custom branding / design area';
-      els.stripEditor.appendChild(footer);
-
-      if (isDuplicateMode()) {
-        geom.slots.forEach((slot, slotIndex) => {
-          const photo = state.photos[slot.row];
-          if (!photo) return;
-
-          const el = document.createElement('div');
-          el.className = 'photo-item';
-          el.style.left = `${slot.x * scaleX}px`;
-          el.style.top = `${slot.y * scaleY}px`;
-          el.style.width = `${slot.w * scaleX}px`;
-          el.style.height = `${slot.h * scaleY}px`;
-
-          const img = document.createElement('img');
-          img.src = photo.dataUrl;
-          img.style.objectPosition = `${(photo.focalX ?? 0.5) * 100}% ${(photo.focalY ?? 0.5) * 100}%`;
-          el.appendChild(img);
-
-          const btn = document.createElement('button');
-          btn.className = 'retake-btn';
-          btn.type = 'button';
-          btn.textContent = 'Retake';
-          btn.addEventListener('click', (ev) => {
-            ev.stopPropagation();
-            ev.preventDefault();
-            startRetake(slot.row);
-          });
-          el.appendChild(btn);
-
-          els.stripEditor.appendChild(el);
-        });
-      } else {
-        geom.slots.forEach((slot, slotIndex) => {
-          const photo = state.photos[slotIndex];
-          if (!photo) return;
-
-          const el = document.createElement('div');
-          el.className = 'photo-item';
-          el.style.left = `${slot.x * scaleX}px`;
-          el.style.top = `${slot.y * scaleY}px`;
-          el.style.width = `${slot.w * scaleX}px`;
-          el.style.height = `${slot.h * scaleY}px`;
-
-          const img = document.createElement('img');
-          img.src = photo.dataUrl;
-          img.style.objectPosition = `${(photo.focalX ?? 0.5) * 100}% ${(photo.focalY ?? 0.5) * 100}%`;
-          el.appendChild(img);
-
-          const btn = document.createElement('button');
-          btn.className = 'retake-btn';
-          btn.type = 'button';
-          btn.textContent = 'Retake';
-          btn.addEventListener('click', (ev) => {
-            ev.stopPropagation();
-            ev.preventDefault();
-            startRetake(slotIndex);
-          });
-          el.appendChild(btn);
-
-          els.stripEditor.appendChild(el);
-        });
+      if (geom.mode !== 'landscape') {
+        const footer = document.createElement('div');
+        footer.className = 'footer-guide';
+        footer.style.height = `${geom.footerH * scaleY}px`;
+        footer.textContent = 'Custom branding / design area';
+        els.stripEditor.appendChild(footer);
       }
+
+      geom.slots.forEach((slot) => {
+        let photoIndex;
+        if (geom.mode === 'landscape') {
+          photoIndex = slot.index;
+        } else if (isDuplicateMode()) {
+          photoIndex = slot.row;
+        } else {
+          photoIndex = slot.index;
+        }
+
+        const photo = state.photos[photoIndex];
+        if (!photo) return;
+
+        const el = document.createElement('div');
+        el.className = 'photo-item';
+        el.style.left = `${slot.x * scaleX}px`;
+        el.style.top = `${slot.y * scaleY}px`;
+        el.style.width = `${slot.w * scaleX}px`;
+        el.style.height = `${slot.h * scaleY}px`;
+
+        const img = document.createElement('img');
+        img.src = photo.dataUrl;
+        img.style.objectPosition = `${(photo.focalX ?? 0.5) * 100}% ${(photo.focalY ?? 0.5) * 100}%`;
+        el.appendChild(img);
+
+        const btn = document.createElement('button');
+        btn.className = 'retake-btn';
+        btn.type = 'button';
+        btn.textContent = 'Retake';
+        btn.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          ev.preventDefault();
+          startRetake(photoIndex);
+        });
+        el.appendChild(btn);
+
+        els.stripEditor.appendChild(el);
+      });
 
       if (state.templateDataUrl) {
         const overlay = document.createElement('img');
@@ -729,7 +883,7 @@
 
     async function renderExportCanvas() {
       const layout = currentLayout();
-      const { slots } = buildSlots(layout);
+      const geom = getLayoutGeometry(layout);
       const canvas = els.exportCanvas;
       canvas.width = layout.width;
       canvas.height = layout.height;
@@ -740,32 +894,25 @@
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
 
-      if (isDuplicateMode()) {
-        for (let i = 0; i < slots.length; i++) {
-          const slot = slots[i];
-          const photo = state.photos[slot.row];
-          if (!photo) continue;
-          const img = await loadImage(photo.dataUrl);
-          ctx.save();
-          ctx.beginPath();
-          ctx.rect(slot.x, slot.y, slot.w, slot.h);
-          ctx.clip();
-          drawCover(ctx, img, slot.x, slot.y, slot.w, slot.h, photo.focalX ?? 0.5, photo.focalY ?? 0.5);
-          ctx.restore();
+      for (const slot of geom.slots) {
+        let photoIndex;
+        if (geom.mode === 'landscape') {
+          photoIndex = slot.index;
+        } else if (isDuplicateMode()) {
+          photoIndex = slot.row;
+        } else {
+          photoIndex = slot.index;
         }
-      } else {
-        for (let i = 0; i < state.photos.length; i++) {
-          const photo = state.photos[i];
-          const slot = slots[i];
-          if (!photo || !slot) continue;
-          const img = await loadImage(photo.dataUrl);
-          ctx.save();
-          ctx.beginPath();
-          ctx.rect(slot.x, slot.y, slot.w, slot.h);
-          ctx.clip();
-          drawCover(ctx, img, slot.x, slot.y, slot.w, slot.h, photo.focalX ?? 0.5, photo.focalY ?? 0.5);
-          ctx.restore();
-        }
+
+        const photo = state.photos[photoIndex];
+        if (!photo) continue;
+        const img = await loadImage(photo.dataUrl);
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(slot.x, slot.y, slot.w, slot.h);
+        ctx.clip();
+        drawCover(ctx, img, slot.x, slot.y, slot.w, slot.h, photo.focalX ?? 0.5, photo.focalY ?? 0.5);
+        ctx.restore();
       }
 
       if (state.templateDataUrl) {
@@ -883,12 +1030,7 @@
     }
 
     function buildPhotoObject(dataUrl) {
-      return {
-        id: uid(),
-        dataUrl,
-        focalX: 0.5,
-        focalY: 0.5
-      };
+      return { id: uid(), dataUrl, focalX: 0.5, focalY: 0.5 };
     }
 
     function placePhotoAtIndex(index, dataUrl) {
@@ -1031,7 +1173,7 @@
     async function printStripOnly() {
       await renderExportCanvas();
       const layout = currentLayout();
-      const pageSize = layout.width > 600 ? '4in 6in' : '2in 6in';
+      const pageSize = layout.kind === 'landscape' ? '6in 4in' : (layout.width > 600 ? '4in 6in' : '2in 6in');
       const popup = window.open('', '_blank', 'width=900,height=1200');
       if (!popup) {
         setStatus('Popup blocked. Allow popups to print the strip.');
@@ -1111,6 +1253,7 @@
       });
       els.layoutSelect.addEventListener('change', () => {
         state.layoutKey = els.layoutSelect.value;
+        syncDuplicateToggleAvailability();
         state.captureTargetIndex = null;
         const total = captureCount();
         if (state.photos.length > total) state.photos = state.photos.slice(0, total);
@@ -1151,6 +1294,7 @@
     async function boot() {
       updateCountdownLabel();
       applyPreviewFilter();
+      syncDuplicateToggleAvailability();
       attachEvents();
       updateEditorSize();
       setCaptureButtonText();
