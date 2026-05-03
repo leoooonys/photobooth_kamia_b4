@@ -6,6 +6,9 @@ Gap thickness used by the current code:
   Footer/design area height: 396 px
   Footer starts at y = 1404 px
 
+Standard portrait layouts use a reserved footer/design area at the bottom.
+Landscape layouts use a large photo area plus a separate design/footer area on the side.
+
 strip3
   Canvas: 600 x 1800 px
   Grid: 1 cols x 3 rows
@@ -58,3 +61,50 @@ grid8
     Slot 6: x=612.0, y=712.5, w=516.0, h=303.75
     Slot 7: x=72.0, y=1037.25, w=516.0, h=303.75
     Slot 8: x=612.0, y=1037.25, w=516.0, h=303.75
+
+landscapeRight
+  Canvas: 1800 x 1200 px
+  Layout: 4R Landscape - Right
+  Mode: 3 small photos on top, 1 big photo on bottom-left, design/footer area on bottom-right
+  Outer margin: 28 px
+  Inner area: 1744 x 1144 px
+  Slot gap between small photos: 22 px
+  Row gap: 18 px
+  Design gap: 22 px
+  Top border inset: 16 px
+  Small photo row ratio: 0.285
+  Design/footer area is shorter than the big photo in length
+  Design/footer area:
+    x=1144, y=388, w=628, h=768
+  Slots:
+    Slot 1: x=28.0, y=44.0, w=566.6667, h=326.0
+    Slot 2: x=616.6667, y=44.0, w=566.6667, h=326.0
+    Slot 3: x=1205.3334, y=44.0, w=566.6667, h=326.0
+    Slot 4: x=28.0, y=388.0, w=1094.0, h=768.0
+
+landscapeLeft
+  Canvas: 1800 x 1200 px
+  Layout: 4R Landscape - Left
+  Mode: design/footer area on the top-left, big photo on the top-right, 3 small photos on the bottom row
+  Outer margin: 28 px
+  Inner area: 1744 x 1144 px
+  Slot gap between small photos: 22 px
+  Row gap: 18 px
+  Design gap: 22 px
+  Top border inset: 16 px
+  Small photo row ratio: 0.285
+  Design/footer area is shorter than the big photo in length
+  Design/footer area:
+    x=28, y=44, w=628, h=768
+  Slots:
+    Slot 1: x=28.0, y=830.0, w=566.6667, h=326.0
+    Slot 2: x=616.6667, y=830.0, w=566.6667, h=326.0
+    Slot 3: x=1205.3334, y=830.0, w=566.6667, h=326.0
+    Slot 4: x=678.0, y=44.0, w=1094.0, h=768.0
+
+Notes for layout editing:
+  - Standard portrait layouts are built from a grid.
+  - Landscape layouts use custom geometry.
+  - In landscape layouts, the big photo height stays fixed relative to the layout math, and the design/footer area is shorter in length.
+  - The left landscape layout places the 3 small photos at the bottom row.
+  - The right landscape layout places the 3 small photos at the top row.
