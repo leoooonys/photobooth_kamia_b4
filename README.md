@@ -113,7 +113,7 @@ Typical project files:
 
 - `index.html` — main frontend UI and capture flow
 - `photobooth_strip_guides.json` — layout guide coordinates
-- `photobooth_strip_guides.txt` — human-readable layout guide notes
+- `photobooth_strip_guides.txt` — layout guide notes
 
 ## Setup
 
