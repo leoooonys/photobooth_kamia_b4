@@ -5,14 +5,13 @@
     "footerDesignAreaHeightPx": 396,
     "footerStartsAtYpx": 1404,
     "canvasSizesPx": {
-      "2x6Layouts": [
-        600,
-        1800
-      ],
-      "4x6Layouts": [
-        1200,
-        1800
-      ]
+      "2x6Layouts": [600, 1800],
+      "4x6Layouts": [1200, 1800],
+      "4rLandscapeLayouts": [1800, 1200]
+    },
+    "layoutTypes": {
+      "standardPortrait": "2x6 and 4x6 grid-based layouts",
+      "landscape": "4R landscape layouts with a large photo and a design/footer area"
     }
   },
   "layouts": [
@@ -310,6 +309,132 @@
           "y": 1037.25,
           "w": 516.0,
           "h": 303.75
+        }
+      ]
+    },
+    {
+      "name": "landscapeRight",
+      "canvas": {
+        "width": 1800,
+        "height": 1200
+      },
+      "kind": "landscape",
+      "variant": "bottom",
+      "photoCount": 4,
+      "geometry": {
+        "outerMargin": 28,
+        "slotGap": 22,
+        "rowGap": 18,
+        "designGap": 22,
+        "borderY": 16,
+        "smallRowRatio": 0.285,
+        "minFooterW": 220
+      },
+      "designArea": {
+        "x": 1144,
+        "y": 388,
+        "w": 628,
+        "h": 768
+      },
+      "slots": [
+        {
+          "slot": 1,
+          "row": 1,
+          "col": 1,
+          "x": 28.0,
+          "y": 44.0,
+          "w": 566.6667,
+          "h": 326.0
+        },
+        {
+          "slot": 2,
+          "row": 1,
+          "col": 2,
+          "x": 616.6667,
+          "y": 44.0,
+          "w": 566.6667,
+          "h": 326.0
+        },
+        {
+          "slot": 3,
+          "row": 1,
+          "col": 3,
+          "x": 1205.3334,
+          "y": 44.0,
+          "w": 566.6667,
+          "h": 326.0
+        },
+        {
+          "slot": 4,
+          "row": 2,
+          "col": 1,
+          "x": 28.0,
+          "y": 388.0,
+          "w": 1094.0,
+          "h": 768.0
+        }
+      ]
+    },
+    {
+      "name": "landscapeLeft",
+      "canvas": {
+        "width": 1800,
+        "height": 1200
+      },
+      "kind": "landscape",
+      "variant": "top",
+      "photoCount": 4,
+      "geometry": {
+        "outerMargin": 28,
+        "slotGap": 22,
+        "rowGap": 18,
+        "designGap": 22,
+        "borderY": 16,
+        "smallRowRatio": 0.285,
+        "minFooterW": 220
+      },
+      "designArea": {
+        "x": 28,
+        "y": 44,
+        "w": 628,
+        "h": 768
+      },
+      "slots": [
+        {
+          "slot": 1,
+          "row": 2,
+          "col": 1,
+          "x": 28.0,
+          "y": 830.0,
+          "w": 566.6667,
+          "h": 326.0
+        },
+        {
+          "slot": 2,
+          "row": 2,
+          "col": 2,
+          "x": 616.6667,
+          "y": 830.0,
+          "w": 566.6667,
+          "h": 326.0
+        },
+        {
+          "slot": 3,
+          "row": 2,
+          "col": 3,
+          "x": 1205.3334,
+          "y": 830.0,
+          "w": 566.6667,
+          "h": 326.0
+        },
+        {
+          "slot": 4,
+          "row": 1,
+          "col": 1,
+          "x": 678.0,
+          "y": 44.0,
+          "w": 1094.0,
+          "h": 768.0
         }
       ]
     }
