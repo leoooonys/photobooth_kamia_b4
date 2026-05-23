@@ -420,12 +420,10 @@
 
           <div class="action-row">
             <button class="btn primary" id="saveBtn">Save to Device</button>
-            <button class="btn ghost" id="saveRawBtn">Save Raw ZIP</button>
-            <button class="btn ghost" id="printBtn">Print Strip Only</button>
             <button class="btn success" id="emailBtn">Send via Email</button>
+            <button class="btn ghost" id="printBtn">Print Strip Only</button>
           </div>
 
-          <div class="status" id="rawStatus"></div>
           <div class="status" id="emailStatus"></div>
         </div>
       </section>
@@ -468,11 +466,9 @@
       clearTemplateBtn: document.getElementById('clearTemplateBtn'),
       shots: document.getElementById('shots'),
       status: document.getElementById('status'),
-      rawStatus: document.getElementById('rawStatus'),
       emailStatus: document.getElementById('emailStatus'),
       emailInput: document.getElementById('emailInput'),
       saveBtn: document.getElementById('saveBtn'),
-      saveRawBtn: document.getElementById('saveRawBtn'),
       printBtn: document.getElementById('printBtn'),
       emailBtn: document.getElementById('emailBtn'),
       editorViewport: document.getElementById('editorViewport'),
@@ -499,7 +495,6 @@
     function isLandscapeLayout() { return currentLayout().kind === 'landscape'; }
     function isDuplicateMode() { return !!currentLayout().allowDuplicateByRow && els.duplicateByRowToggle.checked; }
     function setStatus(message) { els.status.textContent = message; }
-    function setRawStatus(message) { els.rawStatus.textContent = message; }
     function setEmailStatus(message) { els.emailStatus.textContent = message; }
     function uid() { return (crypto && crypto.randomUUID) ? crypto.randomUUID() : `id-${Date.now()}-${Math.random().toString(16).slice(2)}`; }
     function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
@@ -1141,7 +1136,6 @@
       renderAll();
       setStatus('New session started.');
       setEmailStatus('');
-      setRawStatus('');
     }
 
     function loadTemplate(file) {
@@ -1160,19 +1154,8 @@
       setStatus('Template cleared.');
     }
 
-    async function saveToDevice() {
-      await renderExportCanvas();
-      const link = document.createElement('a');
-      const layout = currentLayout();
-      link.download = `photobooth-${layout.label}-${Date.now()}.png`;
-      link.href = els.exportCanvas.toDataURL('image/png');
-      link.click();
-      setStatus('Saved to device.');
-    }
-
     function dataUrlToUint8Array(dataUrl) {
       const commaIndex = dataUrl.indexOf(',');
-      const meta = dataUrl.slice(0, commaIndex);
       const base64 = dataUrl.slice(commaIndex + 1);
       const binary = atob(base64);
       const bytes = new Uint8Array(binary.length);
@@ -1310,17 +1293,25 @@
       return new Blob([localData, centralDir, endRecord], { type: 'application/zip' });
     }
 
-    async function saveRawImagesAsZip() {
+    async function saveToDevice() {
       if (!state.photos.length) {
-        setRawStatus('Capture photos first.');
+        setStatus('Capture photos first.');
         return;
       }
 
-      setRawStatus('Building ZIP file...');
+      setStatus('Building ZIP file...');
 
       try {
+        await renderExportCanvas();
         const layout = currentLayout();
         const entries = [];
+        const now = new Date();
+
+        entries.push({
+          name: `photobooth-${layout.label}-strip.png`,
+          data: dataUrlToUint8Array(els.exportCanvas.toDataURL('image/png')),
+          date: now
+        });
 
         for (let i = 0; i < state.photos.length; i++) {
           const photo = state.photos[i];
@@ -1332,21 +1323,21 @@
           entries.push({
             name: `photobooth-${layout.label}-raw-${String(i + 1).padStart(2, '0')}.png`,
             data: dataUrlToUint8Array(dataUrl),
-            date: new Date()
+            date: now
           });
         }
 
         const zipBlob = await createZipBlob(entries);
         const link = document.createElement('a');
-        link.download = `photobooth-${layout.label}-raw-${Date.now()}.zip`;
+        link.download = `photobooth-${layout.label}-${Date.now()}.zip`;
         link.href = URL.createObjectURL(zipBlob);
         link.click();
 
         setTimeout(() => URL.revokeObjectURL(link.href), 30000);
-        setRawStatus('Raw ZIP download started.');
+        setStatus('Saved ZIP with strip and raw photos to device.');
       } catch (err) {
         console.error(err);
-        setRawStatus('Could not create ZIP file.');
+        setStatus('Could not create ZIP file.');
       }
     }
 
@@ -1466,7 +1457,6 @@
       els.newSessionBtn.addEventListener('click', resetSession);
       els.clearTemplateBtn.addEventListener('click', clearTemplate);
       els.saveBtn.addEventListener('click', saveToDevice);
-      els.saveRawBtn.addEventListener('click', saveRawImagesAsZip);
       els.printBtn.addEventListener('click', printStripOnly);
       els.emailBtn.addEventListener('click', sendEmail);
       window.addEventListener('resize', () => renderAll());
