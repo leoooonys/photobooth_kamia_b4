@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Photobooth - User View</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    
+    .camera-wrap {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1); /* Default mirror */
+    }
+
+    .countdown-overlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      background: rgba(0, 0, 0, 0.2);
+      z-index: 5;
+      color: white;
+      text-align: center;
+      font-weight: 800;
+      text-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+
+    .countdown-overlay.show { display: grid; }
+    .countdown-number { font-size: 25vw; line-height: 1; }
+    .countdown-label { margin-top: 10px; font-size: 4vw; font-weight: 700; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="camera-wrap">
+    <video id="video" autoplay playsinline muted></video>
+    <div id="countdownOverlay" class="countdown-overlay">
+      <div>
+        <div id="countdownNumber" class="countdown-number">3</div>
+        <div id="countdownLabel" class="countdown-label">Get ready</div>
+      </div>
+    </div>
+  </div>
+  
+  <canvas id="captureCanvas" class="hidden"></canvas>
+
+  <script>
+    const video = document.getElementById('video');
+    const captureCanvas = document.getElementById('captureCanvas');
+    const overlay = document.getElementById('countdownOverlay');
+    const numberEl = document.getElementById('countdownNumber');
+    const labelEl = document.getElementById('countdownLabel');
+    
+    let stream = null;
+
+    async function startCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { width: { ideal: 1920 }, height: { ideal: 1080 }, facingMode: 'user' }, 
+          audio: false 
+        });
+        video.srcObject = stream;
+        await video.play();
+        sendStatus('Camera ready on User View.');
+      } catch (err) {
+        sendStatus('Error accessing camera on User View. Please check permissions.');
+      }
+    }
+
+    function sendStatus(message) {
+      if (window.opener) {
+        window.opener.postMessage({ type: 'STATUS_UPDATE', message }, '*');
+      }
+    }
+
+    function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+    async function runCountdown(seconds, label) {
+      overlay.classList.add('show');
+      if (seconds <= 0) {
+        numberEl.textContent = '0';
+        labelEl.textContent = label;
+        await wait(250);
+        return;
+      }
+      for (let i = seconds; i > 0; i--) {
+        numberEl.textContent = String(i);
+        labelEl.textContent = label;
+        await wait(1000);
+      }
+      numberEl.textContent = '';
+      labelEl.textContent = 'Smile!';
+      await wait(300);
+      overlay.classList.remove('show');
+    }
+
+    async function captureFrame(filter, mirror) {
+      captureCanvas.width = video.videoWidth || 1920;
+      captureCanvas.height = video.videoHeight || 1080;
+      
+      const ctx = captureCanvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+
+      if (mirror) {
+        ctx.translate(captureCanvas.width, 0);
+        ctx.scale(-1, 1);
+      }
+
+      ctx.filter = filter !== 'none' ? filter : 'none';
+      ctx.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
+      
+      return captureCanvas.toDataURL('image/png');
+    }
+
+    window.addEventListener('message', async (event) => {
+      const data = event.data;
+      if (data.type === 'START_CAPTURE') {
+        
+        video.style.filter = data.filter !== 'none' ? data.filter : 'none';
+        video.style.transform = data.mirror ? 'scaleX(-1)' : 'none';
+
+        if (data.isRetake) {
+          await runCountdown(data.countdownSeconds, 'Retake');
+          const dataUrl = await captureFrame(data.filter, data.mirror);
+          window.opener.postMessage({ type: 'PHOTO_CAPTURED', index: data.startIndex, dataUrl }, '*');
+          sendStatus(`Retake saved to slot ${data.startIndex + 1}.`);
+        } else {
+          for (let i = data.startIndex; i < data.totalShots; i++) {
+            if (i > data.startIndex) await wait(1500);
+            await runCountdown(data.countdownSeconds, `Photo ${i + 1} of ${data.totalShots}`);
+            const dataUrl = await captureFrame(data.filter, data.mirror);
+            
+            window.opener.postMessage({ type: 'PHOTO_CAPTURED', index: i, dataUrl }, '*');
+            sendStatus(`Captured ${i + 1} of ${data.totalShots} photos.`);
+          }
+        }
+      }
+    });
+
+    startCamera();
+  </script>
+</body>
+</html>
