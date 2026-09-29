@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Photobooth Studio</title>
+  <title>Photobooth Studio - Organizer View</title>
   <style>
     :root {
       --bg: #0f1115;
@@ -308,8 +308,8 @@
 <body>
   <div class="page">
     <header>
-      <h1>Photobooth Studio</h1>
-      <p class="sub">Relax, smile, and capture your memories with your best pose.</p>
+      <h1>Photobooth Studio - Organizer</h1>
+      <p class="sub">Manage settings, layouts, and print outputs from this interface.</p>
     </header>
 
     <main class="app">
@@ -323,8 +323,8 @@
             <video id="video" autoplay playsinline muted></video>
             <div id="cameraFallback" class="camera-fallback">
               <div>
-                <div style="font-size:16px; font-weight:700; margin-bottom:6px;">Camera preview will appear here</div>
-                <div>Click Start Camera to request access.</div>
+                <div style="font-size:16px; font-weight:700; margin-bottom:6px;">Local Preview</div>
+                <div>Launch User View for full-screen camera, or Start Local Camera.</div>
               </div>
             </div>
             <div id="countdownOverlay" class="countdown-overlay" aria-live="polite" aria-atomic="true">
@@ -337,7 +337,7 @@
 
           <div class="controls">
             <div class="control">
-              <label for="cameraSelect">Camera device</label>
+              <label for="cameraSelect">Local camera device (Ignored if User View active)</label>
               <select id="cameraSelect"></select>
             </div>
             <div class="control">
@@ -383,8 +383,8 @@
           </div>
 
           <div class="action-row">
-            <button class="btn primary" id="startBtn">Start Camera</button>
-            <button class="btn ghost" id="refreshBtn">Refresh Cameras</button>
+            <button class="btn primary" id="launchUserViewBtn">Launch User View</button>
+            <button class="btn ghost" id="startBtn">Start Local Camera</button>
             <button class="btn success" id="captureBtn">Capture</button>
             <button class="btn danger" id="newSessionBtn">New Session</button>
             <button class="btn ghost" id="clearTemplateBtn">Clear Template</button>
@@ -459,8 +459,8 @@
       mirrorToggle: document.getElementById('mirrorToggle'),
       autoPrintToggle: document.getElementById('autoPrintToggle'),
       duplicateByRowToggle: document.getElementById('duplicateByRowToggle'),
+      launchUserViewBtn: document.getElementById('launchUserViewBtn'),
       startBtn: document.getElementById('startBtn'),
-      refreshBtn: document.getElementById('refreshBtn'),
       captureBtn: document.getElementById('captureBtn'),
       newSessionBtn: document.getElementById('newSessionBtn'),
       clearTemplateBtn: document.getElementById('clearTemplateBtn'),
@@ -490,6 +490,28 @@
       captureTargetIndex: null,
       busy: false
     };
+
+    // --- Dual-Monitor Setup Variables & Listeners ---
+    let userWindow = null;
+
+    window.addEventListener('message', (event) => {
+      const payload = event.data;
+      
+      if (payload.type === 'PHOTO_CAPTURED') {
+        placePhotoAtIndex(payload.index, payload.dataUrl);
+        renderAll();
+        
+        const total = captureCount();
+        if (state.photos.length >= total) {
+          setStatus('Final strip is ready.');
+          if (els.autoPrintToggle.checked) setTimeout(() => printStripOnly(), 250);
+        }
+      } 
+      else if (payload.type === 'STATUS_UPDATE') {
+        setStatus(payload.message);
+      }
+    });
+    // -------------------------------------------------
 
     function currentLayout() { return LAYOUTS[state.layoutKey]; }
     function isLandscapeLayout() { return currentLayout().kind === 'landscape'; }
@@ -545,105 +567,19 @@
 
         if (layout.variant === 'bottom') {
           const bottomY = topY + smallH + rowGap;
-
           for (let i = 0; i < 3; i++) {
-            slots.push({
-              index: i,
-              row: 0,
-              col: i,
-              x: outer + i * (smallW + slotGap),
-              y: topY,
-              w: smallW,
-              h: smallH,
-              kind: 'small'
-            });
+            slots.push({ index: i, row: 0, col: i, x: outer + i * (smallW + slotGap), y: topY, w: smallW, h: smallH, kind: 'small' });
           }
-
-          slots.push({
-            index: 3,
-            row: 1,
-            col: 0,
-            x: outer,
-            y: bottomY,
-            w: bigW,
-            h: bigH,
-            kind: 'big'
-          });
-
-          return {
-            mode: 'landscape',
-            slots,
-            footerH: 0,
-            designArea: {
-              x: outer + bigW + designGap,
-              y: bottomY,
-              w: footerW,
-              h: bigH
-            },
-            outer,
-            innerW,
-            innerH,
-            smallW,
-            smallH,
-            bigW,
-            bigH,
-            designW: footerW,
-            designGap,
-            slotGap,
-            rowGap,
-            borderY
-          };
+          slots.push({ index: 3, row: 1, col: 0, x: outer, y: bottomY, w: bigW, h: bigH, kind: 'big' });
+          return { mode: 'landscape', slots, footerH: 0, designArea: { x: outer + bigW + designGap, y: bottomY, w: footerW, h: bigH }, outer, innerW, innerH, smallW, smallH, bigW, bigH, designW: footerW, designGap, slotGap, rowGap, borderY };
         }
 
         const bottomY = topY + bigH + rowGap;
-
-        slots.push({
-          index: 3,
-          row: 0,
-          col: 1,
-          x: outer + footerW + designGap,
-          y: topY,
-          w: bigW,
-          h: bigH,
-          kind: 'big'
-        });
-
+        slots.push({ index: 3, row: 0, col: 1, x: outer + footerW + designGap, y: topY, w: bigW, h: bigH, kind: 'big' });
         for (let i = 0; i < 3; i++) {
-          slots.push({
-            index: i,
-            row: 1,
-            col: i,
-            x: outer + i * (smallW + slotGap),
-            y: bottomY,
-            w: smallW,
-            h: smallH,
-            kind: 'small'
-          });
+          slots.push({ index: i, row: 1, col: i, x: outer + i * (smallW + slotGap), y: bottomY, w: smallW, h: smallH, kind: 'small' });
         }
-
-        return {
-          mode: 'landscape',
-          slots,
-          footerH: 0,
-          designArea: {
-            x: outer,
-            y: topY,
-            w: footerW,
-            h: bigH
-          },
-          outer,
-          innerW,
-          innerH,
-          smallW,
-          smallH,
-          bigW,
-          bigH,
-          designW: footerW,
-          designGap,
-          slotGap,
-          rowGap,
-          borderY
-        };
+        return { mode: 'landscape', slots, footerH: 0, designArea: { x: outer, y: topY, w: footerW, h: bigH }, outer, innerW, innerH, smallW, smallH, bigW, bigH, designW: footerW, designGap, slotGap, rowGap, borderY };
       }
 
       const footerH = footerHeight(layout);
@@ -659,16 +595,7 @@
       const slots = [];
       for (let row = 0; row < layout.rows; row++) {
         for (let col = 0; col < layout.cols; col++) {
-          slots.push({
-            index: row * layout.cols + col,
-            row,
-            col,
-            x: marginX + col * (cellW + gapX),
-            y: marginY + row * (cellH + gapY),
-            w: cellW,
-            h: cellH,
-            kind: 'slot'
-          });
+          slots.push({ index: row * layout.cols + col, row, col, x: marginX + col * (cellW + gapX), y: marginY + row * (cellH + gapY), w: cellW, h: cellH, kind: 'slot' });
         }
       }
       return { mode: 'standard', slots, footerH, usableH, marginX, marginY, gapX, gapY, innerW, innerH, cellW, cellH };
@@ -824,14 +751,14 @@
     function setCaptureButtonText() {
       if (state.captureTargetIndex !== null) {
         els.captureBtn.textContent = `Retake Slot ${state.captureTargetIndex + 1}`;
-        els.captureBtn.disabled = state.busy || !state.stream;
+        els.captureBtn.disabled = state.busy || (!state.stream && !userWindow);
         return;
       }
 
       const total = captureCount();
       const n = state.photos.length;
 
-      if (!state.stream) {
+      if (!state.stream && !userWindow) {
         els.captureBtn.textContent = 'Capture';
         els.captureBtn.disabled = true;
         return;
@@ -943,17 +870,8 @@
     async function startCamera(deviceId) {
       try {
         if (state.stream) state.stream.getTracks().forEach(track => track.stop());
-
-        const baseVideo = {
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          aspectRatio: { ideal: 16 / 9 },
-          facingMode: 'user'
-        };
-
-        const constraints = deviceId
-          ? { video: { ...baseVideo, deviceId: { exact: deviceId } }, audio: false }
-          : { video: baseVideo, audio: false };
+        const baseVideo = { width: { ideal: 1920 }, height: { ideal: 1080 }, aspectRatio: { ideal: 16 / 9 }, facingMode: 'user' };
+        const constraints = deviceId ? { video: { ...baseVideo, deviceId: { exact: deviceId } }, audio: false } : { video: baseVideo, audio: false };
 
         state.stream = await navigator.mediaDevices.getUserMedia(constraints);
         els.video.srcObject = state.stream;
@@ -962,25 +880,13 @@
         try { await els.video.play(); } catch (e) {}
         await waitForVideoFrame();
 
-        setStatus('Camera started. Ready to capture.');
+        setStatus('Local camera started. Ready to capture.');
         await listCameras();
         if (deviceId) state.currentCameraId = deviceId;
       } catch (err) {
         console.error(err);
-        try {
-          state.stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-          els.video.srcObject = state.stream;
-          els.cameraFallback.style.display = 'none';
-
-          try { await els.video.play(); } catch (e) {}
-          await waitForVideoFrame();
-
-          setStatus('Camera started with fallback constraints.');
-        } catch (fallbackErr) {
-          console.error(fallbackErr);
-          els.cameraFallback.style.display = 'grid';
-          setStatus('Could not start camera. Check permissions and try again.');
-        }
+        els.cameraFallback.style.display = 'grid';
+        setStatus('Could not start local camera. Check permissions.');
       }
       setCaptureButtonText();
     }
@@ -1074,16 +980,8 @@
       renderAll();
     }
 
+    // Patched capture function to route capture logic to the User Window if it's active
     async function capturePhoto() {
-      if (!state.stream) {
-        setStatus('Start the camera first.');
-        return;
-      }
-
-      await waitForVideoFrame();
-
-      if (state.busy) return;
-
       const total = captureCount();
       const startIndex = state.captureTargetIndex !== null ? state.captureTargetIndex : state.photos.length;
 
@@ -1092,6 +990,32 @@
         return;
       }
 
+      // Route to user window if it's opened
+      if (userWindow && !userWindow.closed) {
+        userWindow.postMessage({
+          type: 'START_CAPTURE',
+          countdownSeconds: Number(els.countdownRange.value),
+          totalShots: total,
+          startIndex: startIndex,
+          isRetake: state.captureTargetIndex !== null,
+          filter: els.filterSelect.value,
+          mirror: els.mirrorToggle.checked
+        }, '*');
+        
+        state.captureTargetIndex = null;
+        setCaptureButtonText();
+        return;
+      }
+
+      // Fallback to local capture
+      if (!state.stream) {
+        setStatus('Start the local camera or Launch User View first.');
+        return;
+      }
+
+      await waitForVideoFrame();
+
+      if (state.busy) return;
       state.busy = true;
       setCaptureButtonText();
 
@@ -1167,9 +1091,7 @@
       const table = new Uint32Array(256);
       for (let n = 0; n < 256; n++) {
         let c = n;
-        for (let k = 0; k < 8; k++) {
-          c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
-        }
+        for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
         table[n] = c >>> 0;
       }
       return table;
@@ -1179,9 +1101,7 @@
 
     function crc32(bytes) {
       let crc = 0xFFFFFFFF;
-      for (let i = 0; i < bytes.length; i++) {
-        crc = CRC32_TABLE[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
-      }
+      for (let i = 0; i < bytes.length; i++) crc = CRC32_TABLE[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
       return (crc ^ 0xFFFFFFFF) >>> 0;
     }
 
@@ -1215,10 +1135,7 @@
       const total = chunks.reduce((sum, c) => sum + c.length, 0);
       const out = new Uint8Array(total);
       let offset = 0;
-      for (const chunk of chunks) {
-        out.set(chunk, offset);
-        offset += chunk.length;
-      }
+      for (const chunk of chunks) { out.set(chunk, offset); offset += chunk.length; }
       return out;
     }
 
@@ -1235,41 +1152,15 @@
         const crc = crc32(dataBytes);
 
         const localHeader = concatBytes([
-          u32(0x04034b50),
-          u16(20),
-          u16(0),
-          u16(0),
-          u16(dosTime),
-          u16(dosDate),
-          u32(crc),
-          u32(dataBytes.length),
-          u32(dataBytes.length),
-          u16(nameBytes.length),
-          u16(0),
-          nameBytes
+          u32(0x04034b50), u16(20), u16(0), u16(0), u16(dosTime), u16(dosDate),
+          u32(crc), u32(dataBytes.length), u32(dataBytes.length), u16(nameBytes.length), u16(0), nameBytes
         ]);
 
         localParts.push(localHeader, dataBytes);
 
         const centralHeader = concatBytes([
-          u32(0x02014b50),
-          u16(20),
-          u16(20),
-          u16(0),
-          u16(0),
-          u16(dosTime),
-          u16(dosDate),
-          u32(crc),
-          u32(dataBytes.length),
-          u32(dataBytes.length),
-          u16(nameBytes.length),
-          u16(0),
-          u16(0),
-          u16(0),
-          u16(0),
-          u32(0),
-          u32(offset),
-          nameBytes
+          u32(0x02014b50), u16(20), u16(20), u16(0), u16(0), u16(dosTime), u16(dosDate),
+          u32(crc), u32(dataBytes.length), u32(dataBytes.length), u16(nameBytes.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(offset), nameBytes
         ]);
 
         centralParts.push(centralHeader);
@@ -1280,14 +1171,8 @@
       const localData = concatBytes(localParts);
 
       const endRecord = concatBytes([
-        u32(0x06054b50),
-        u16(0),
-        u16(0),
-        u16(files.length),
-        u16(files.length),
-        u32(centralDir.length),
-        u32(localData.length),
-        u16(0)
+        u32(0x06054b50), u16(0), u16(0), u16(files.length), u16(files.length),
+        u32(centralDir.length), u32(localData.length), u16(0)
       ]);
 
       return new Blob([localData, centralDir, endRecord], { type: 'application/zip' });
@@ -1442,16 +1327,20 @@
         if (file) loadTemplate(file);
         e.target.value = '';
       });
+      
+      // Launch User View logic
+      els.launchUserViewBtn.addEventListener('click', () => {
+        userWindow = window.open('user_view.html', 'UserView', 'width=1280,height=720');
+        setStatus('User View launched. Camera is now handled by the secondary screen.');
+        setCaptureButtonText();
+      });
+
       els.cameraSelect.addEventListener('change', async e => {
         state.currentCameraId = e.target.value;
         await startCamera(state.currentCameraId);
       });
       els.startBtn.addEventListener('click', async () => {
         await startCamera(els.cameraSelect.value || state.currentCameraId);
-      });
-      els.refreshBtn.addEventListener('click', async () => {
-        await listCameras();
-        setStatus('Camera list refreshed.');
       });
       els.captureBtn.addEventListener('click', capturePhoto);
       els.newSessionBtn.addEventListener('click', resetSession);
@@ -1470,19 +1359,7 @@
       updateEditorSize();
       setCaptureButtonText();
       updateShotsRail();
-
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        try {
-          await listCameras();
-          setStatus('Press Start Camera to begin.');
-        } catch (err) {
-          console.warn(err);
-          setStatus('Camera list will appear after permission is granted.');
-        }
-      } else {
-        setStatus('This browser does not support camera access. Use a modern browser.');
-      }
-
+      setStatus('Press Launch User View for dual monitors, or Start Local Camera to preview here.');
       renderAll();
     }
 
