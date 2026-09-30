@@ -15,20 +15,27 @@
       font-family: system-ui, -apple-system, sans-serif;
     }
     
-    .camera-wrap {
-      position: relative;
+    .layout-container {
+      display: flex;
       width: 100%;
       height: 100%;
+    }
+
+    /* Left Side: Live Camera and Countdown */
+    .camera-wrap {
+      flex: 1;
+      position: relative;
       display: flex;
       justify-content: center;
       align-items: center;
+      background: #000;
     }
     
     video {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transform: scaleX(-1); /* Default mirror */
+      transform: scaleX(-1);
     }
 
     .countdown-overlay {
@@ -45,20 +52,58 @@
     }
 
     .countdown-overlay.show { display: grid; }
-    .countdown-number { font-size: 25vw; line-height: 1; }
-    .countdown-label { margin-top: 10px; font-size: 4vw; font-weight: 700; }
+    .countdown-number { font-size: 20vw; line-height: 1; }
+    .countdown-label { margin-top: 10px; font-size: 3vw; font-weight: 700; }
+    
+    /* Right Side: Strip Layout Preview Container */
+    .strip-preview-container {
+      width: clamp(280px, 28vw, 450px);
+      background: #0a0d13;
+      border-left: 1px solid rgba(255,255,255,0.1);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    /* Copied Strip Editor CSS from Organizer View */
+    #stripEditor {
+      position: relative;
+      background: white;
+      border-radius: 0;
+      box-shadow: 0 20px 45px rgba(0,0,0,0.4);
+      transform-origin: center center;
+    }
+    .slot-frame { position: absolute; border: 1px dashed rgba(0,0,0,0.18); background: rgba(255,255,255,0.52); pointer-events: none; border-radius: 0; }
+    .slot-index { position: absolute; top: 6px; left: 6px; width: 20px; height: 20px; border-radius: 0; background: rgba(0,0,0,0.08); color: rgba(0,0,0,0.52); display: grid; place-items: center; font-size: 11px; font-weight: 700; }
+    .footer-guide { position: absolute; left: 0; right: 0; bottom: 0; border-top: 2px dashed rgba(0,0,0,0.18); background: linear-gradient(180deg, rgba(255,255,255,0.15), rgba(255,255,255,0.06)); color: rgba(0,0,0,0.34); display: grid; place-items: center; font-size: 11px; letter-spacing: 0.02em; pointer-events: none; border-radius: 0; }
+    .side-guide { position: absolute; top: 0; bottom: 0; display: grid; place-items: center; border: 2px dashed rgba(0,0,0,0.18); background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.06)); color: rgba(0,0,0,0.34); font-size: 11px; letter-spacing: 0.02em; pointer-events: none; text-align: center; padding: 10px; }
+    .photo-item { position: absolute; border-radius: 0; overflow: hidden; box-shadow: 0 12px 28px rgba(0,0,0,0.18); background: #f6f6f6; }
+    .photo-item img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+    
+    /* Hide interactive elements on the User View */
+    .retake-btn { display: none !important; }
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-  <div class="camera-wrap">
-    <video id="video" autoplay playsinline muted></video>
-    <div id="countdownOverlay" class="countdown-overlay">
-      <div>
-        <div id="countdownNumber" class="countdown-number">3</div>
-        <div id="countdownLabel" class="countdown-label">Get ready</div>
+  <div class="layout-container">
+    <div class="camera-wrap">
+      <video id="video" autoplay playsinline muted></video>
+      <div id="countdownOverlay" class="countdown-overlay">
+        <div>
+          <div id="countdownNumber" class="countdown-number">3</div>
+          <div id="countdownLabel" class="countdown-label">Get ready</div>
+        </div>
       </div>
+    </div>
+    
+    <!-- User View Real-Time Strip Preview -->
+    <div class="strip-preview-container" id="previewContainer">
+      <div id="stripEditor"></div>
     </div>
   </div>
   
@@ -70,6 +115,8 @@
     const overlay = document.getElementById('countdownOverlay');
     const numberEl = document.getElementById('countdownNumber');
     const labelEl = document.getElementById('countdownLabel');
+    const previewContainer = document.getElementById('previewContainer');
+    const stripEditor = document.getElementById('stripEditor');
     
     let stream = null;
 
@@ -133,10 +180,26 @@
       return captureCanvas.toDataURL('image/png');
     }
 
+    function scaleStripToFit() {
+      if (!stripEditor.style.width || !stripEditor.style.height) return;
+      
+      // Parse raw pixel dimensions sent from Organizer View
+      const rawW = parseFloat(stripEditor.style.width);
+      const rawH = parseFloat(stripEditor.style.height);
+      
+      // Available space inside the sidebar panel (with 20px padding)
+      const availW = previewContainer.clientWidth - 40;
+      const availH = previewContainer.clientHeight - 40;
+      
+      // Calculate CSS scale transformation
+      const scale = Math.min(availW / rawW, availH / rawH);
+      stripEditor.style.transform = `scale(${scale})`;
+    }
+
     window.addEventListener('message', async (event) => {
       const data = event.data;
+      
       if (data.type === 'START_CAPTURE') {
-        
         video.style.filter = data.filter !== 'none' ? data.filter : 'none';
         video.style.transform = data.mirror ? 'scaleX(-1)' : 'none';
 
@@ -155,10 +218,26 @@
             sendStatus(`Captured ${i + 1} of ${data.totalShots} photos.`);
           }
         }
+      } 
+      else if (data.type === 'SYNC_STRIP') {
+        // Sync layout, photos, and template exactly as configured on the organizer screen
+        stripEditor.style.width = data.width;
+        stripEditor.style.height = data.height;
+        stripEditor.innerHTML = data.html;
+        scaleStripToFit();
       }
     });
 
+    // Handle auto-rescaling on window resize
+    window.addEventListener('resize', scaleStripToFit);
+
+    // Initial boot sequence
     startCamera();
+    
+    // Notify the organizer view that we are ready to receive the initial strip configuration
+    if (window.opener) {
+      window.opener.postMessage({ type: 'USER_VIEW_READY' }, '*');
+    }
   </script>
 </body>
 </html>
