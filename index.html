@@ -510,6 +510,10 @@
       else if (payload.type === 'STATUS_UPDATE') {
         setStatus(payload.message);
       }
+      else if (payload.type === 'USER_VIEW_READY') {
+        // As soon as user window boots up, force a render to sync the strip visually
+        renderAll(); 
+      }
     });
     // -------------------------------------------------
 
@@ -740,6 +744,16 @@
 
       updateShotsRail();
       setCaptureButtonText();
+
+      // NEW: Sync the freshly rendered strip to the User View so they see their progress
+      if (userWindow && !userWindow.closed) {
+        userWindow.postMessage({
+          type: 'SYNC_STRIP',
+          html: els.stripEditor.innerHTML,
+          width: els.stripEditor.style.width,
+          height: els.stripEditor.style.height
+        }, '*');
+      }
     }
 
     function renderAll() {
@@ -980,7 +994,6 @@
       renderAll();
     }
 
-    // Patched capture function to route capture logic to the User Window if it's active
     async function capturePhoto() {
       const total = captureCount();
       const startIndex = state.captureTargetIndex !== null ? state.captureTargetIndex : state.photos.length;
@@ -1328,7 +1341,6 @@
         e.target.value = '';
       });
       
-      // Launch User View logic
       els.launchUserViewBtn.addEventListener('click', () => {
         userWindow = window.open('user_view.html', 'UserView', 'width=1280,height=720');
         setStatus('User View launched. Camera is now handled by the secondary screen.');
